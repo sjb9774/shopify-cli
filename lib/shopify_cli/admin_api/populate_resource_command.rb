@@ -1,7 +1,17 @@
 require "shopify_cli"
 require "optparse"
+require "JSON"
 
 module ShopifyCLI
+  class MyJSON
+    def self.valid?(value)
+      result = JSON.parse(value)
+  
+      result.is_a?(Hash) || result.is_a?(Array)
+    rescue JSON::ParserError, TypeError
+      false
+    end
+  end
   class AdminAPI
     class PopulateResourceCommand < ShopifyCLI::Command::SubCommand
       DEFAULT_COUNT = 5
@@ -104,6 +114,11 @@ module ShopifyCLI
             "--#{field["name"]}=#{field["defaultValue"]}",
             field["description"]
           ) do |value|
+            
+            if MyJSON.valid?(value)
+              value = JSON.parse value
+            end
+
             @input[field["name"]] = value
           end
         end
